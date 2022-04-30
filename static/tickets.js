@@ -1,9 +1,7 @@
 const _SHEET_ID = '1k0ZiJ1El2J1gxfqp6boEx7E2OTiSW87pCp_c9j0jv0Q'
 const _API_KEY = 'AIzaSyDHaowMtvRwFaYBH--r4utAAd6XJ5bc-6c';
-const _SHEET_RANGE = "A1:D1000";
+const _SHEET_RANGE = "A1:E1000";
 const _SHEET_NAMES = ['Ultimaker', 'Formlabs']
-
-const _COL_MAP = { 'UUID': 0, 'PRIORITY': 1, 'STATUS': 2, 'COST': 3 }
 
 class TicketUtils {
   static isStatusWaiting(status) {
@@ -43,24 +41,30 @@ class TicketList {
       let tickets_list_temp = []
       this.__number_of_waiting_tickets[_SHEET_NAMES[sheet]] = 0;
 
+      let column_map_temp = rows.shift();
+      let column_map = {}
+      for (let i = 0; i < column_map_temp.length; i++)
+        column_map[column_map_temp[i]] = i
+
       // Process all rows in this sheet
       for (let r = 0; r < rows.length; r++) {
         let row = rows[r];
         // Remove empty/invalid rows
-        if (row.length !== Object.keys(_COL_MAP).length) {
+        if (row.length !== Object.keys(column_map).length) {
           continue;
         }
         // Convert ticket dict for readability
         tickets_list_temp.push({
-          'uuid': row[_COL_MAP['UUID']],
-          'priority': Number(row[_COL_MAP['PRIORITY']]),
-          'status': row[_COL_MAP['STATUS']],
-          'cost': row[_COL_MAP['COST']],
-          'is_waiting': TicketUtils.isStatusWaiting(row[_COL_MAP['STATUS']]),
+          'uuid': row[column_map['uuid']],
+          'timestamp': row[column_map['timestamp']],
+          'priority': Number(row[column_map['priority']]),
+          'status': row[column_map['status']],
+          'cost': row[column_map['cost']],
+          'is_waiting': TicketUtils.isStatusWaiting(row[column_map['status']]),
           'type': _SHEET_NAMES[sheet]
         });
 
-        if (TicketUtils.isStatusWaiting(row[_COL_MAP['STATUS']]))
+        if (TicketUtils.isStatusWaiting(row[column_map['status']]))
           this.__number_of_waiting_tickets[_SHEET_NAMES[sheet]]++;
       };
 
