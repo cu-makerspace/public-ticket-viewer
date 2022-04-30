@@ -1,27 +1,34 @@
-function createTableRow(ticket) {
-  if (ticket === undefined || ticket === null) {
-    // Return a title row
+function createTableRow(ticket = undefined, lost_uuid = undefined) {
+  let row;
+  if (ticket === undefined && lost_uuid === undefined) { // Return a title row
     return $('<tr>').addClass('ticket-list-header')
       .append($('<th>').text('Ticket'))
       .append($('<th>').text('Type'))
       .append($('<th>').text('Status'))
       .append($('<th>').text('Que Position'))
       .append($('<th>').text('Total Cost'));
+  } else if (ticket === undefined && lost_uuid !== undefined) { // The ID was unknown
+    return $('<tr>').addClass('ticket-list-row unknown-ticket')
+      .append($('<td>').addClass('ticket-id').text(lost_uuid))
+      .append($('<td>').addClass('ticket-type'))
+      .append($('<td>').addClass('ticket-status'))
+      .append($('<td>').addClass('ticket-que'))
+      .append($('<td>').addClass('ticket-cost'));
   }
-  let row = $('<tr>').addClass('ticket-list-row')
-    .append($('<td>').addClass('ticket-id').text(ticket.uuid))
-    .append($('<td>').addClass('ticket-type').text(ticket.type))
-    .append($('<td>').addClass('ticket-status').text(ticket.status))
-    .append($('<td>').addClass('ticket-que'))
-    .append($('<td>').addClass('ticket-cost').text(ticket.cost));
+  else { // Normal ticket
+    row = $('<tr>').addClass('ticket-list-row')
+      .append($('<td>').addClass('ticket-id').text(ticket.uuid))
+      .append($('<td>').addClass('ticket-type').text(ticket.type))
+      .append($('<td>').addClass('ticket-status').text(ticket.status))
+      .append($('<td>').addClass('ticket-que'))
+      .append($('<td>').addClass('ticket-cost').text(ticket.cost));
+    if (ticket.cost[0] !== '$')
+      row.children('.ticket-cost').addClass('empty');
 
-  if (ticket.cost[0] !== '$')
-    row.children('.ticket-cost').addClass('empty');
-
-  if (TicketUtils.isStatusWaiting(ticket.status))
-    row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ultimaker_tickets.getTotalWaitingTickets(ticket.type) + 1}`));
-
-  return row;
+    if (ticket.is_waiting)
+      row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ultimaker_tickets.getTotalWaitingTickets(ticket.type) + 1}`));
+    return row;
+  }
 }
 
 
@@ -38,9 +45,7 @@ function updateTicketDomList(ticket_indexes) {
     container.append(createTableRow(tickets[found_tickets[t]]));
   }
   for (let t = 0; t < unknown_tickets.length; t++) {
-    list_item = $('<li>')
-      .append($('<span>').text(`${unknown_tickets[t]} not found. It may have not been registered in our system yet.`))
-    container.append(list_item);
+    container.append(createTableRow(undefined, unknown_tickets[t]));
   }
 }
 
