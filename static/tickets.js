@@ -1,6 +1,7 @@
 const _SHEET_ID = '1k0ZiJ1El2J1gxfqp6boEx7E2OTiSW87pCp_c9j0jv0Q'
 const _API_KEY = 'AIzaSyDHaowMtvRwFaYBH--r4utAAd6XJ5bc-6c';
 const _SHEET_RANGE = "A1:D1000";
+const _SHEET_NAMES = ['Ultimaker', 'Formlabs']
 
 const _COL_MAP = { 'UUID': 0, 'PRIORITY': 1, 'STATUS': 2, 'COST': 3 }
 
@@ -11,46 +12,69 @@ class TicketUtils {
 }
 
 class TicketList {
-  constructor(sheet_name) {
-    this.GAPI_QUERY = `https://sheets.googleapis.com/v4/spreadsheets/${_SHEET_ID}/values/'${sheet_name}'!${_SHEET_RANGE}?key=${_API_KEY}`;
-    this.__global_tickets = null;
-    this.__global_tickets_lock = false;
+  constructor() {
+    // Build the URL from the ranges, sheet URL, and API key
+    let range_requests = []
+    _SHEET_NAMES.forEach(el => { range_requests.push(`ranges='${el}'!${_SHEET_RANGE}`); })
+    range_requests = range_requests.join('&');
+    this.__GAPI_QUERY = `https://sheets.googleapis.com/v4/spreadsheets/${_SHEET_ID}/values:batchGet?${range_requests}&key=${_API_KEY}`;
+    // Prep data for initial data load
+    this.__all_tickets = null;
+    this.__all_tickets_lock = false;
     this.__number_of_waiting_tickets = 0;
-    this.getSpreadsheetValues() // Perform inital page load
+    this.getSpreadsheetValues()
   }
   /**
-   * @returns The total number of tickets that are waiting in the que to be printed.
+   * @returns The total number of rows that are waiting in the que to be printed.
    */
-  getTotalWaitingTickets() {
-    return this.__number_of_waiting_tickets;
+  getTotalWaitingTickets(type) {
+    return this.__number_of_waiting_tickets[type];
   }
 
   /**
    * Filters the recived data and bring it into a more usable formats
    */
   handleNewData(data) {
-    this.__global_tickets_lock = true;
-    this.__global_tickets = [];
-    this.__number_of_waiting_tickets = 0;
-    // Convert to dict for readability and remove empty/invalid rows
-    for (let r = 0; r < data.values.length; r++) {
-      let row = data.values[r];
-      if (row.length !== Object.keys(_COL_MAP).length) {
-        continue;
+    this.__all_tickets_lock = true;
+    this.__all_tickets = [];
+    this.__number_of_waiting_tickets = {};
+    for (let sheet in _SHEET_NAMES) {
+      let rows = data.valueRanges[sheet].values;
+      let tickets_list_temp = []
+      this.__number_of_waiting_tickets[_SHEET_NAMES[sheet]] = 0;
+
+      // Process all rows in this sheet
+      for (let r = 0; r < rows.length; r++) {
+        let row = rows[r];
+        // Remove empty/invalid rows
+        if (row.length !== Object.keys(_COL_MAP).length) {
+          continue;
+        }
+        // Convert ticket dict for readability
+        tickets_list_temp.push({
+          'uuid': row[_COL_MAP['UUID']],
+          'priority': Number(row[_COL_MAP['PRIORITY']]),
+          'status': row[_COL_MAP['STATUS']],
+          'cost': row[_COL_MAP['COST']],
+          'is_waiting': TicketUtils.isStatusWaiting(row[_COL_MAP['STATUS']]),
+          'type': _SHEET_NAMES[sheet]
+        });
+
+        if (TicketUtils.isStatusWaiting(row[_COL_MAP['STATUS']]))
+          this.__number_of_waiting_tickets[_SHEET_NAMES[sheet]]++;
+      };
+
+      tickets_list_temp.sort((a, b) => { return b.priority - a.priority });
+
+      for (let t = 0; t < tickets_list_temp.length; t++) {
+        // Que position relies on position after priority sorting
+        tickets_list_temp[t]['que_position'] = t + 1;
       }
-      this.__global_tickets.push({
-        'uuid': row[_COL_MAP['UUID']],
-        'priority': Number(row[_COL_MAP['PRIORITY']]),
-        'status': row[_COL_MAP['STATUS']],
-        'cost': row[_COL_MAP['COST']]
-      });
 
-      if (TicketUtils.isStatusWaiting(row[_COL_MAP['STATUS']]))
-        this.__number_of_waiting_tickets++;
-    };
+      this.__all_tickets = this.__all_tickets.concat(tickets_list_temp);
+    }
 
-    this.__global_tickets.sort((a, b) => { return b.priority - a.priority });
-    this.__global_tickets_lock = false;
+    this.__all_tickets_lock = false;
   }
 
   /**
@@ -62,7 +86,7 @@ class TicketList {
    */
   getSpreadsheetValues() {
     return $.get({
-      url: this.GAPI_QUERY,
+      url: this.__GAPI_QUERY,
       type: 'GET',
       dataType: 'json',
     }).done((data) => { this.handleNewData(data); })
@@ -77,37 +101,47 @@ class TicketList {
       });
   }
   /**
-   * Gets a shallow copy of the full list of tickets.
+   * Gets a shallow copy of the full list of rows.
    * 
-   * If tickets have not yet been loaded, this will load them.
+   * If rows have not yet been loaded, this will load them.
    * 
-   * @returns A promise containing the list of tickets when resolved.
+   * @returns A promise containing the list of rows when resolved.
    */
-  getAllTickets(force_refresh = false) {
+  _getAllTickets(force_refresh = false) {
     return new Promise((resolve, reject) => {
-      if (this.__global_tickets !== null && !force_refresh) {
-        while (this.__global_tickets_lock === true) { }
-        resolve(this.__global_tickets);
+      if (this.__all_tickets !== null && !force_refresh) {
+        while (this.__all_tickets_lock === true) { }
+        resolve(this.__all_tickets);
       }
       else {
         this.getSpreadsheetValues()
-          .then(() => resolve(this.__global_tickets))
+          .then(() => resolve(this.__all_tickets))
           .catch(error => reject(error));
       }
     });
   }
+  /**
+   * Gets a shallow copy of the requested rows.
+   * 
+   * @returns The rows.
+   */
+  getTickets(id_array) {
+    if (!Array.isArray(id_array));
+
+    return this.__all_tickets.filter(tic => { return !id_array.includes(tic.uuid) });
+  }
 
   /**
-   * Get a list of tickets by IDs.
+   * Get a list of rows by IDs.
    * 
    * @param {Array} search_list An array of string IDs to search.
-   * @returns An ordered array of IDs matching the tickets in __global_tickets.
+   * @returns An ordered array of IDs matching the rows in __all_tickets.
    */
   async findTickets(search_list) {
     if (!Array.isArray(search_list)) search_list = [search_list];
 
     return new Promise((resolve, reject) => {
-      this.getAllTickets().then((all_tickets) => {
+      this._getAllTickets().then((all_tickets) => {
         let unfound_tickets = search_list;
         let resulting_ids = [];
 
