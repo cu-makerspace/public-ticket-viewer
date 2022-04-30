@@ -1,7 +1,15 @@
+function ticketStatusTag(ticket) {
+  let tag = $('<span>');
+  tag.text(ticket.status);
+  tag.addClass('ticket-status');
+  return tag
+}
+
 function createTableRow(ticket = undefined, lost_uuid = undefined) {
-  let row;
   if (ticket === undefined && lost_uuid === undefined) { // Return a title row
     return $('<tr>').addClass('ticket-list-header')
+      .append($('<th>').text('Timestamp').addClass('debug'))
+      .append($('<th>').text('Priority').addClass('debug'))
       .append($('<th>').text('Ticket'))
       .append($('<th>').text('Type'))
       .append($('<th>').text('Status'))
@@ -9,6 +17,8 @@ function createTableRow(ticket = undefined, lost_uuid = undefined) {
       .append($('<th>').text('Total Cost'));
   } else if (ticket === undefined && lost_uuid !== undefined) { // The ID was unknown
     return $('<tr>').addClass('ticket-list-row unknown-ticket')
+      .append($('<td>').addClass('ticket-timestamp debug'))
+      .append($('<td>').addClass('ticket-priority debug'))
       .append($('<td>').addClass('ticket-id').text(lost_uuid))
       .append($('<td>').addClass('ticket-type'))
       .append($('<td>').addClass('ticket-status'))
@@ -16,17 +26,24 @@ function createTableRow(ticket = undefined, lost_uuid = undefined) {
       .append($('<td>').addClass('ticket-cost'));
   }
   else { // Normal ticket
+    let row;
     row = $('<tr>').addClass('ticket-list-row')
+      .append($('<td>').addClass('ticket-timestamp debug').text(ticket.timestamp))
+      .append($('<td>').addClass('ticket-priority debug').text(ticket.priority))
       .append($('<td>').addClass('ticket-id').text(ticket.uuid))
-      .append($('<td>').addClass('ticket-type').text(ticket.type))
-      .append($('<td>').addClass('ticket-status').text(ticket.status))
+      .append($('<td>').addClass('ticket-type').text(ticket.printer_type))
+      .append($('<td>').addClass('ticket-status').append(ticketStatusTag(ticket)))
       .append($('<td>').addClass('ticket-que'))
       .append($('<td>').addClass('ticket-cost').text(ticket.cost));
+
     if (ticket.cost[0] !== '$')
       row.children('.ticket-cost').addClass('empty');
 
-    if (ticket.is_waiting)
-      row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ultimaker_tickets.getTotalWaitingTickets(ticket.type) + 1}`));
+    if (ticket.is_waiting) {
+      row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ultimaker_tickets.getTotalWaitingTickets(ticket.printer_type) + 1}`));
+      row.addClass('waiting');
+    }
+
     return row;
   }
 }
@@ -53,7 +70,7 @@ function getNewTickets(evt) {
   let ticket_request = evt.target.value;
   ticket_request = ticket_request.split(/[\s,]+/);
   ticket_request = ticket_request.filter((str) => { return str.length > 0 });
-  ultimaker_tickets.findTickets(ticket_request).then(ticket_indexes => updateTicketDomList(ticket_indexes));
+  ultimaker_tickets.findTickets(ticket_request, true).then(ticket_indexes => updateTicketDomList(ticket_indexes));
 }
 
 function initialize() {

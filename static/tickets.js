@@ -61,7 +61,7 @@ class TicketList {
           'status': row[column_map['status']],
           'cost': row[column_map['cost']],
           'is_waiting': TicketUtils.isStatusWaiting(row[column_map['status']]),
-          'type': _SHEET_NAMES[sheet]
+          'printer_type': _SHEET_NAMES[sheet]
         });
 
         if (TicketUtils.isStatusWaiting(row[column_map['status']]))
@@ -139,9 +139,13 @@ class TicketList {
    * Get a list of rows by IDs.
    * 
    * @param {Array} search_list An array of string IDs to search.
+   * @param {boolean} sort Whether to sort across printer types by timestamp. 
+   *                       This makes different printer types more digestible 
+   *                       in one list; this way, tickets from one type aren't 
+   *                       all placed below another. Priority sorting will be preserved.
    * @returns An ordered array of IDs matching the rows in __all_tickets.
    */
-  async findTickets(search_list) {
+  async findTickets(search_list, sort = true) {
     if (!Array.isArray(search_list)) search_list = [search_list];
 
     return new Promise((resolve, reject) => {
@@ -155,6 +159,21 @@ class TicketList {
             resulting_ids.push(i);
             unfound_tickets.splice(idx, 1);
           }
+        }
+
+        if (sort) {
+          resulting_ids.sort((a, b) => {
+            let tic_a = all_tickets[a];
+            let tic_b = all_tickets[b];
+            // console.log(`a=${a.printer_type}, b=${b.printer_type}`)
+            if (tic_a.is_waiting !== tic_b.is_waiting)
+              return tic_a.is_waiting ? -1 : 1;
+            else if (tic_a.printer_type === tic_b.printer_type)
+              return tic_b.priority - tic_a.priority;
+            else { // We have different types; sort them by timestamp instead
+              return tic_b.timestamp - tic_a.timestamp;
+            }
+          })
         }
 
         resolve({ 'found': resulting_ids, 'not_found': unfound_tickets });
