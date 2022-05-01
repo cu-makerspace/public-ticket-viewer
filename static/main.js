@@ -40,7 +40,7 @@ function createTableRow(ticket = undefined, lost_uuid = undefined) {
       row.children('.ticket-cost').addClass('empty');
 
     if (ticket.is_waiting) {
-      row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ultimaker_tickets.getTotalWaitingTickets(ticket.printer_type) + 1}`));
+      row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ultimaker_tickets.getTotalWaitingTickets(ticket.printer_type)}`));
       row.addClass('waiting');
     }
 
