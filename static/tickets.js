@@ -1,7 +1,7 @@
 const _SHEET_ID = '1k0ZiJ1El2J1gxfqp6boEx7E2OTiSW87pCp_c9j0jv0Q'
 const _API_KEY = 'AIzaSyDHaowMtvRwFaYBH--r4utAAd6XJ5bc-6c';
 const _SHEET_RANGE = "A1:E1000";
-const _SHEET_NAMES = ['Ultimaker', 'Formlabs']
+const _SHEET_NAMES = ['Ultimaker', 'Formlabs', 'Markforged']
 
 class TicketUtils {
   static isStatusWaiting(status) {
@@ -68,7 +68,6 @@ class TicketList {
           this.__number_of_waiting_tickets[_SHEET_NAMES[sheet]]++;
       };
 
-      tickets_list_temp.sort((a, b) => { return b.priority - a.priority });
 
       for (let t = 0; t < tickets_list_temp.length; t++) {
         // Que position relies on position after priority sorting
@@ -78,6 +77,7 @@ class TicketList {
       this.__all_tickets = this.__all_tickets.concat(tickets_list_temp);
     }
 
+    this.__all_tickets.sort((a, b) => { return b.priority - a.priority });
     this.__all_tickets_lock = false;
   }
 
@@ -163,16 +163,9 @@ class TicketList {
 
         if (sort) {
           resulting_ids.sort((a, b) => {
-            let tic_a = all_tickets[a];
-            let tic_b = all_tickets[b];
-            // console.log(`a=${a.printer_type}, b=${b.printer_type}`)
-            if (tic_a.is_waiting !== tic_b.is_waiting)
-              return tic_a.is_waiting ? -1 : 1;
-            else if (tic_a.printer_type === tic_b.printer_type)
-              return tic_b.priority - tic_a.priority;
-            else { // We have different types; sort them by timestamp instead
-              return tic_b.timestamp - tic_a.timestamp;
-            }
+            if (all_tickets[a].is_waiting !== all_tickets[b].is_waiting)
+              return all_tickets[a].is_waiting ? -1 : 1;
+            return 0;
           })
         }
 
