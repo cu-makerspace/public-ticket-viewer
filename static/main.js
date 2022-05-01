@@ -1,7 +1,9 @@
 function ticketStatusTag(ticket) {
+  let info = ultimaker_tickets.getRenderInfoForStatus(ticket.status);
   let tag = $('<span>');
   tag.text(ticket.status);
-  tag.addClass('ticket-status');
+  tag.addClass('ticket-status-tag');
+  tag.css('background-color', info.color);
   return tag
 }
 

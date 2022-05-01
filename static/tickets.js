@@ -15,11 +15,12 @@ class TicketList {
     let range_requests = []
     _SHEET_NAMES.forEach(el => { range_requests.push(`ranges='${el}'!${_SHEET_RANGE}`); })
     range_requests = range_requests.join('&');
-    this.__GAPI_QUERY = `https://sheets.googleapis.com/v4/spreadsheets/${_SHEET_ID}/values:batchGet?${range_requests}&key=${_API_KEY}`;
+    this.__GAPI_QUERY = `https://sheets.googleapis.com/v4/spreadsheets/${_SHEET_ID}/values:batchGet?${range_requests}&ranges='Status Rendering'!A2:D1000&key=${_API_KEY}`;
     // Prep data for initial data load
     this.__all_tickets = null;
     this.__all_tickets_lock = false;
     this.__number_of_waiting_tickets = 0;
+    this.__status_types = null;
     this.getSpreadsheetValues()
   }
   /**
@@ -36,6 +37,7 @@ class TicketList {
     this.__all_tickets_lock = true;
     this.__all_tickets = [];
     this.__number_of_waiting_tickets = {};
+    this.__processStatusTypes(data.valueRanges[data.valueRanges.length - 1]);
     for (let sheet in _SHEET_NAMES) {
       let rows = data.valueRanges[sheet].values;
       let tickets_list_temp = []
@@ -123,6 +125,38 @@ class TicketList {
           .catch(error => reject(error));
       }
     });
+  }
+
+  __processStatusTypes(types_raw_data) {
+    this.__status_types = {};
+    for (let r = 0; r < types_raw_data.values.length; r++) {
+      let row = types_raw_data.values[r];
+      this.__status_types[row[0]] = { 'color': row[1], 'waiting': Boolean(Number(row[2])), 'description': row[3] }
+    }
+    this.getRenderInfoForStatus('Waiting to Print');
+  }
+  /**
+   * Returns the best matching info for the status.
+   * 
+   * @param {string} ticket_status The ticket's status.
+   * @returns The info for that type of status, or null if no match is found.
+   */
+  getRenderInfoForStatus(ticket_status) {
+    let max_length = 0;
+    let max_status = undefined;
+    for (let status in this.__status_types) {
+      if (ticket_status.includes(status)) {
+        if (max_length < status.length) {
+          // Best match is the longest search term that still matched.
+          // e.g., for 'On Hold(Waiting for Payment)', 'On Hold' is a worse match than 'One Hold (Waiting'
+          max_length = status.length;
+          max_status = status;
+        }
+      }
+    }
+    if (max_status === undefined)
+      return null;
+    return this.__status_types[max_status];
   }
   /**
    * Gets a shallow copy of the requested rows.
