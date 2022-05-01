@@ -58,11 +58,11 @@ function updateTicketDomList(ticket_indexes) {
 
   tickets = ultimaker_tickets.getTickets(found_tickets);
 
-  for (let t = 0; t < found_tickets.length; t++) {
-    container.append(createTableRow(tickets[found_tickets[t]]));
-  }
   for (let t = 0; t < unknown_tickets.length; t++) {
     container.append(createTableRow(undefined, unknown_tickets[t]));
+  }
+  for (let t = 0; t < found_tickets.length; t++) {
+    container.append(createTableRow(tickets[found_tickets[t]]));
   }
 }
 
@@ -82,7 +82,7 @@ function initialize() {
   });
 
   if (params.t !== null) {
-    $('#ticket-id-box').val(params.t).change();
+    $('#ticket-id-box').val(params.t.replaceAll(',', '\n')).change();
   }
 }
 
