@@ -2,6 +2,7 @@ const _SHEET_ID = '1k0ZiJ1El2J1gxfqp6boEx7E2OTiSW87pCp_c9j0jv0Q'
 const _API_KEY = 'AIzaSyDHaowMtvRwFaYBH--r4utAAd6XJ5bc-6c';
 const _SHEET_RANGE = "A1:E1000";
 const _SHEET_NAMES = ['Ultimaker', 'Formlabs', 'Markforged']
+const _CONFIG_SHEET = 'Dynamic Configuration';
 
 class TicketUtils {
   static isStatusWaiting(status) {
@@ -15,7 +16,7 @@ class TicketList {
     let range_requests = []
     _SHEET_NAMES.forEach(el => { range_requests.push(`ranges='${el}'!${_SHEET_RANGE}`); })
     range_requests = range_requests.join('&');
-    this.__GAPI_QUERY = `https://sheets.googleapis.com/v4/spreadsheets/${_SHEET_ID}/values:batchGet?${range_requests}&ranges='Status Rendering'!A2:D1000&key=${_API_KEY}`;
+    this.__GAPI_QUERY = `https://sheets.googleapis.com/v4/spreadsheets/${_SHEET_ID}/values:batchGet?${range_requests}&ranges='${_CONFIG_SHEET}'!A2:D1000&key=${_API_KEY}`;
     // Prep data for initial data load
     this.__all_tickets = null;
     this.__all_tickets_lock = false;
@@ -52,13 +53,12 @@ class TicketList {
       for (let r = 0; r < rows.length; r++) {
         let row = rows[r];
         // Remove empty/invalid rows
-        if (row.length !== Object.keys(column_map).length) {
+        if (row.length !== Object.keys(column_map).length || row[column_map['status']] === '') {
           continue;
         }
         // Convert ticket dict for readability
         tickets_list_temp.push({
           'uuid': row[column_map['uuid']],
-          'timestamp': row[column_map['timestamp']],
           'priority': Number(row[column_map['priority']]),
           'status': row[column_map['status']],
           'cost': row[column_map['cost']],
@@ -68,11 +68,11 @@ class TicketList {
 
         if (TicketUtils.isStatusWaiting(row[column_map['status']]))
           this.__number_of_waiting_tickets[_SHEET_NAMES[sheet]]++;
-      };
+      }
 
-
+      // Que position relies on position after priority-based sorting
+      tickets_list_temp.sort((a, b) => { return b.priority - a.priority });
       for (let t = 0; t < tickets_list_temp.length; t++) {
-        // Que position relies on position after priority sorting
         tickets_list_temp[t]['que_position'] = t + 1;
       }
 
@@ -80,6 +80,7 @@ class TicketList {
     }
 
     this.__all_tickets.sort((a, b) => { return b.priority - a.priority });
+
     this.__all_tickets_lock = false;
   }
 
@@ -173,7 +174,7 @@ class TicketList {
    * Get a list of rows by IDs.
    * 
    * @param {Array} search_list An array of string IDs to search.
-   * @param {boolean} sort Whether to sort across printer types by timestamp. 
+   * @param {boolean} sort Whether to sort across printer types by 'waiting' status.
    *                       This makes different printer types more digestible 
    *                       in one list; this way, tickets from one type aren't 
    *                       all placed below another. Priority sorting will be preserved.
@@ -209,4 +210,4 @@ class TicketList {
   }
 }
 
-const ultimaker_tickets = new TicketList('Ultimakers');
+const ticket_manager = new TicketList();

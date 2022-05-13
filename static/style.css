@@ -6,7 +6,7 @@
  */
 
 * {
-  --theme-error-color: #ffc5c5;
+  --theme-error-color: #fdd1d1;
   --theme-error-color-hover: #fcdada;
   --theme-light-grey: #eeeeee;
   --theme-text-light: #8d8d8d;
@@ -14,7 +14,23 @@
 }
 
 body {
-  /* font-family:  */
+  font-family: 'Roboto', sans-serif;
+  font-weight: normal;
+}
+
+#ui-container {
+  width: 50%;
+  margin: 0 auto;
+}
+
+#ui-container>* {
+  width: 100%
+}
+
+#ticket-id-box {
+  padding: 0.5em;
+  resize: vertical;
+  min-height: 3.5em;
 }
 
 .debug {
@@ -27,7 +43,7 @@ table {
 
 table td,
 table th {
-  min-width: 8em;
+  min-width: 9em;
   max-width: 16em;
   padding: 0.1em 1em 0.1em 1em;
 }
@@ -35,6 +51,12 @@ table th {
 .ticket-list-header>th {
   border-right: 1px solid var(--theme-light-grey);
   border-bottom: 2px solid var(--theme-light-grey);
+  font-weight: bold;
+}
+
+.ticket-list-header .help-icon {
+  font-size: inherit;
+  padding: 0 0.5em;
 }
 
 .ticket-list-row>td {
@@ -42,26 +64,35 @@ table th {
   color: var(--theme-text-dark);
 }
 
-.ticket-list-row.unknown-ticket {
-  background-color: var(--theme-error-color);
-}
-
 .ticket-list-row:hover {
   background-color: var(--theme-light-grey);
 }
 
-.ticket-list-row.unknown-ticket:hover {
-  background-color: var(--theme-error-color-hover);
+.ticket-list-row .ticket-list-error {
+  color: var(--theme-text-light);
+  font-weight: lighter;
 }
 
 .ticket-id {
-  font-family: 'Courier New', Courier, monospace;
+  font-family: 'Roboto Mono', 'Courier New', monospace;
 }
 
 .ticket-cost.empty {
   color: var(--theme-text-light);
+  font-weight: lighter;
+
+}
+
+.ticket-que>span:first-child {
+  font-weight: bold;
 }
 
 .ticket-que>span:last-child {
   color: var(--theme-text-light);
+  font-weight: lighter;
+}
+
+.ticket-status-tag {
+  padding: 0.05em 0.75em;
+  border-radius: 999px;
 }

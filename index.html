@@ -5,13 +5,33 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ticket Report Viewer</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:light,regular,bold|Roboto Mono:light">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
   <link rel="stylesheet" href="static/style.css">
 </head>
 
 <body>
-  <h1>Ticket Report Viewer</h1>
-  <textarea id="ticket-id-box" placeholder="Enter ticket IDs seperated by lines, commas, or spaces"></textarea>
-  <table id="ticket-info-table"></table>
+  <div id="ui-container">
+    <h1>Ticket Tracking</h1>
+    <label for="ticket-id-box" id="ticket-id-box-label">Ticket IDs</label>
+    <textarea id="ticket-id-box" placeholder="Enter ticket IDs seperated by lines, commas, or spaces"></textarea>
+    <small id="ticket-id-box-helptext">Enter ticket IDs seperated by lines, commas, or spaces. The table should
+      automatically update with your tickets.
+      <br>
+      Tickets cannot be edited or updated using this interface.
+      To do that, please contact the Clarkson Ignite Makerspace at makerspace@clarkson.edu.
+    </small>
+    <br>
+    <br>
+    <label for="ticket-url-box" id="ticket-url-box-label">Generated URL</label>
+    <input readonly id="ticket-url-box" placeholder="Enter ticket IDs to generate a URL"></input>
+    <small id="ticket-url-box-helptext">You can copy the generated URL to share ticket tracking information with
+      others.</small>
+    <br>
+    <br>
+    <h2>Results</h2>
+    <table id="ticket-info-table"></table>
+  </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="static/tickets.js"></script>
   <script src="static/main.js"></script>
