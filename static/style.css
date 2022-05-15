@@ -24,7 +24,9 @@ body {
 }
 
 #ui-container>* {
-  width: 100%
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 #ticket-id-box {
@@ -73,11 +75,11 @@ table th {
   font-weight: lighter;
 }
 
-.ticket-id {
+.ticket-list-row>.ticket-id {
   font-family: 'Roboto Mono', 'Courier New', monospace;
 }
 
-.ticket-cost.empty {
+.ticket-list-row>.ticket-cost.empty {
   color: var(--theme-text-light);
   font-weight: lighter;
 
@@ -95,4 +97,11 @@ table th {
 .ticket-status-tag {
   padding: 0.05em 0.75em;
   border-radius: 999px;
+}
+
+@media only screen and (max-width: 600px) {
+  #ui-container {
+    width: 90%;
+    margin: 0 auto;
+  }
 }
