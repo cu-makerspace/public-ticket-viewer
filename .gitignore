@@ -1,0 +1,7 @@
+# IDE tags file
+.tags
+.tags_swap
+
+# NPM stuff
+node_modules/
+dist/
