@@ -1,4 +1,4 @@
-# Clarkson Ignite Makerspace Public Ticket Viewer
+# [Clarkson Ignite Makerspace Public Ticket Viewer](https://cu-makerspace.github.io/public-ticket-viewer/)
 
 This repository hosts code meant to run on GitHub pages. It allows any user, with their unique tracking number, to see the status, que position, and estimated time to print their part.
 
