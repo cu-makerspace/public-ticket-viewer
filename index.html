@@ -15,7 +15,7 @@
     <h1>Ticket Tracking</h1>
     <label for="ticket-id-box" id="ticket-id-box-label">Ticket IDs</label>
     <textarea id="ticket-id-box" placeholder="Enter ticket IDs seperated by lines, commas, or spaces"></textarea>
-    <small id="ticket-id-box-helptext">Enter ticket IDs seperated by lines, commas, or spaces. The table should
+    <small id="ticket-id-box-helptext">Enter ticket IDs seperated by commas or spaces. The table should
       automatically update with your tickets.
       <br>
       Tickets cannot be edited or updated using this interface.
@@ -27,7 +27,8 @@
     <small id="ticket-url-box-helptext">You can share the generated URL to give tracking information to others.</small>
     <br>
     <h2>Results</h2>
-    <table id="ticket-info-table"></table>
+    <ul id="ticket-info-table" class="ticket-list">
+  </div>
   </div>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="static/tickets.js"></script>

@@ -6,7 +6,8 @@ const _CONFIG_SHEET = 'Dynamic Configuration';
 
 class TicketUtils {
   static isStatusWaiting(status) {
-    return status.toLowerCase().includes('waiting to print')
+    return ticket_manager.getRenderInfoForStatus(status).waiting;
+    // return status.toLowerCase().includes('waiting to print')
   }
 }
 

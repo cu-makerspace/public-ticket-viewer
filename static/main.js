@@ -1,14 +1,15 @@
 function ticketStatusTag(ticket) {
   let info = ticket_manager.getRenderInfoForStatus(ticket.status);
-  let tag = $('<span>');
-  tag.text(ticket.status);
-  tag.addClass('ticket-status-tag');
-  tag.css('background-color', info.color);
+  let tag = $('<span>')
+    .text(ticket.status)
+    .addClass('ticket-status-tag')
+    .css('background-color', info.color)
+    .attr('title', info.description);
   return tag
 }
 
 function hoverHelpIcon(helptext) {
-  return $('<span>').addClass('material-icons-outlined help-icon').text('info');
+  return $('<span>').addClass('material-icons-outlined help-icon').text('help_outline').attr('title', helptext);
 }
 
 function generateUrlFromTickets(ticket_array) {
@@ -20,34 +21,45 @@ function generateUrlFromTickets(ticket_array) {
 
 function createTableRow(ticket = undefined, lost_uuid = undefined) {
   if (ticket === undefined && lost_uuid === undefined) { // Return a title row
-    return $('<tr>').addClass('ticket-list-header')
-      .append($('<th>').text('Priority').addClass('debug'))
-      .append($('<th>').text('Ticket'))
-      .append($('<th>').text('Type'))
-      .append($('<th>').text('Status'))
-      .append($('<th>').text('Que Position').append(hoverHelpIcon('helptext')))
-      .append($('<th>').text('Total Cost'));
+    return $('<header>').addClass('ticket-list-header')
+      .append($('<div>').text('Priority').addClass('debug'))
+      .append($('<div>').text('Ticket'))
+      .append($('<div>').text('Type').addClass('no-mobile'))
+      .append($('<div>').text('Status'))
+      .append($('<div>').text('Que Position').append(hoverHelpIcon('The general position in the que for the specific printer type.')).addClass('no-mobile'))
+      .append($('<div>').text('Account Charge').addClass('no-mobile'));
   } else if (ticket === undefined && lost_uuid !== undefined) { // The ID was unknown
-    return $('<tr>').addClass('ticket-list-row unknown-ticket')
-      .append($('<td>').addClass('ticket-priority debug'))
-      .append($('<td>').addClass('ticket-id').text(lost_uuid))
-      .append($('<td>').addClass('ticket-list-error').attr('colspan', 4).text('Ticket not found in our system or not yet processed.'));
+    return $('<details>').addClass('ticket-list-row unknown-ticket')
+      .append($('<summary>').addClass('ticket-summary')
+        .append($('<div>').addClass('ticket-priority debug'))
+        .append($('<div>').addClass('ticket-id').text(lost_uuid))
+        .append($('<div>').addClass('ticket-list-error').text('Ticket not found in our system or not yet processed.'))
+      );
   }
   else { // Normal ticket
     let row;
-    row = $('<tr>').addClass('ticket-list-row')
-      .append($('<td>').addClass('ticket-priority debug').text(ticket.priority))
-      .append($('<td>').addClass('ticket-id').text(ticket.uuid))
-      .append($('<td>').addClass('ticket-type').text(ticket.printer_type))
-      .append($('<td>').addClass('ticket-status').append(ticketStatusTag(ticket)))
-      .append($('<td>').addClass('ticket-que'))
-      .append($('<td>').addClass('ticket-cost').text(ticket.cost));
+    row = $('<details>').addClass('ticket-list-row')
+      .append($('<summary>').addClass('ticket-summary')
+        .append($('<div>').addClass('ticket-priority debug').text(ticket.priority))
+        .append($('<div>').addClass('ticket-id').text(ticket.uuid))
+        .append($('<div>').addClass('ticket-type no-mobile').text(ticket.printer_type))
+        .append($('<div>').addClass('ticket-status').append(ticketStatusTag(ticket)))
+        .append($('<div>').addClass('ticket-que no-mobile'))
+        .append($('<div>').addClass('ticket-cost no-mobile').text(ticket.cost))
+      )
+      .append(
+        $('<ul>').addClass('ticket-detail').append(
+          $('<li>').append($('<header>').text('Type'), $('<div>').addClass('ticket-type').text(ticket.printer_type)),
+          $('<li>').append($('<header>').text('Account Charge'), $('<div>').addClass('ticket-cost').text(ticket.cost)),
+          $('<li>').append($('<header>').text('Que Position'), $('<div>').addClass('ticket-que'))
+        )
+      );
 
     if (ticket.cost[0] !== '$')
-      row.children('.ticket-cost').addClass('empty');
+      row.find('.ticket-cost').addClass('empty');
 
     if (ticket.is_waiting) {
-      row.children('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ticket_manager.getTotalWaitingTickets(ticket.printer_type)}`));
+      row.find('.ticket-que').append($('<span>').text(ticket.que_position)).append($('<span>').text(` / ${ticket_manager.getTotalWaitingTickets(ticket.printer_type)}`));
       row.addClass('waiting');
     }
 
@@ -57,7 +69,7 @@ function createTableRow(ticket = undefined, lost_uuid = undefined) {
 
 function updateTicketDomList(ticket_indexes) {
   container = $('#ticket-info-table').empty();
-  container.append(createTableRow());
+  container.append($('<li>').append(createTableRow()));
 
   found_tickets = ticket_indexes['found'];
   unknown_tickets = ticket_indexes['not_found'];
@@ -65,10 +77,10 @@ function updateTicketDomList(ticket_indexes) {
   tickets = ticket_manager.getTickets(found_tickets);
 
   for (let t = 0; t < unknown_tickets.length; t++) {
-    container.append(createTableRow(undefined, unknown_tickets[t]));
+    container.append($('<li>').append(createTableRow(undefined, unknown_tickets[t])));
   }
   for (let t = 0; t < found_tickets.length; t++) {
-    container.append(createTableRow(tickets[found_tickets[t]]));
+    container.append($('<li>').append(createTableRow(tickets[found_tickets[t]])));
   }
 }
 
