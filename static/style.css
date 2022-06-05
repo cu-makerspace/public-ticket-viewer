@@ -16,8 +16,18 @@
 body {
   font-family: 'Roboto', sans-serif;
   font-weight: normal;
-  width: 100%;
   overflow-y: scroll;
+}
+
+img#header-image {
+  width: 30%;
+  min-width: 250px;
+  margin: auto !important;
+}
+
+h1 {
+  margin-right: auto !important;
+  margin-left: auto !important;
 }
 
 #ui-container {
@@ -62,15 +72,16 @@ details>summary {
 }
 
 .ticket-list-header * {
+  height: 1.75em;
+  line-height: 1.75em;
+}
+
+.ticket-list-header * {
   border-bottom: 2px solid var(--theme-light-grey);
   font-weight: bold;
   text-align: center;
   color: var(--theme-text-dark);
   flex-grow: 1;
-}
-
-.ticket-list-header *:not(:last-child) {
-  border-right: 1px solid var(--theme-light-grey);
 }
 
 .ticket-list-header .help-icon {
@@ -102,6 +113,14 @@ details>summary {
     /* Hide details on desktop since it's already in the list */
     display: none;
   }
+
+  .ticket-list-header *:not(:last-child) {
+    border-right: 1px solid var(--theme-light-grey);
+  }
+
+  .ticket-list-row:hover {
+    background-color: var(--theme-light-grey);
+  }
 }
 
 
@@ -119,6 +138,10 @@ details>summary {
     /* Detailed view after clicking on ticket */
     width: 50%;
     flex-grow: 1;
+  }
+
+  .ticket-list-header *:nth-child(2) {
+    border-right: 1px solid var(--theme-light-grey);
   }
 
   .ticket-list .no-mobile {
@@ -156,10 +179,6 @@ details>summary {
   color: var(--theme-text-dark);
 }
 
-.ticket-list-row:hover {
-  background-color: var(--theme-light-grey);
-}
-
 .ticket-list-row .ticket-list-error {
   color: var(--theme-text-light);
   font-weight: lighter;
@@ -169,7 +188,6 @@ details>summary {
 .ticket-list-row .ticket-id {
   font-family: 'Roboto Mono', 'Courier New', monospace;
   font-weight: bold;
-  user-select: all;
 }
 
 .ticket-list-row .ticket-cost.empty {

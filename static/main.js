@@ -26,8 +26,8 @@ function createTableRow(ticket = undefined, lost_uuid = undefined) {
       .append($('<div>').text('Ticket'))
       .append($('<div>').text('Type').addClass('no-mobile'))
       .append($('<div>').text('Status'))
-      .append($('<div>').text('Que Position').append(hoverHelpIcon('The general position in the que for the specific printer type.')).addClass('no-mobile'))
-      .append($('<div>').text('Account Charge').addClass('no-mobile'));
+      .append($('<div>').text('Que Position').addClass('no-mobile').append(hoverHelpIcon('The general position in the que for the specific printer type.')))
+      .append($('<div>').text('Account Charge').addClass('no-mobile').append(hoverHelpIcon('The charge applied to the associated print account.')));
   } else if (ticket === undefined && lost_uuid !== undefined) { // The ID was unknown
     return $('<details>').addClass('ticket-list-row unknown-ticket')
       .append($('<summary>').addClass('ticket-summary')
